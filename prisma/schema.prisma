@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  username      String    @unique
+  password_hash String
+  last_login    DateTime?
+  is_active     Boolean   @default(true)
+  created_at    DateTime  @default(now())
+
+  @@map("users")
+}
+
+model kbli_mapping {
+  id                Int       @id @default(autoincrement())
+  nama_usaha        String?   @map("nama_usaha")
+  status_perusahaan String?   @map("status_perusahaan")
+  status_hasil_gc   String?   @map("status_hasil_gc")
+  kbli_2020         String?   @map("kbli_2020")
+  kbli_2025         String?   @map("kbli_2025")
+  korespondensi     String?   @map("korespondensi")
+  created_at        DateTime  @default(now()) @map("created_at")
+  updated_at        DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  @@map("kbli_mapping")
+  @@index([kbli_2020])
+  @@index([kbli_2025])
+}
