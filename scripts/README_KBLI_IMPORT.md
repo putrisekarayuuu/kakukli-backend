@@ -208,7 +208,7 @@ module.exports = router;
 Add to `src/index.js`:
 
 ```javascript
-const kbliRoutes = require('./routes/kbli');
+const kbliRoutes = require('./routes/kbliMapping');
 app.use('/api/kbli', kbliRoutes);
 ```
 

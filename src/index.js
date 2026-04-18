@@ -6,7 +6,8 @@ require('dotenv').config();
 
 const testRoutes = require('./routes/test');
 const authRoutes = require('./routes/auth');
-const kbliRoutes = require('./routes/kbli');
+const kbliMappingRoutes = require('./routes/kbliMapping');
+const kamusKbliRoutes = require('./routes/kamusKbli');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,7 +20,8 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/test', testRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/kbli', kbliRoutes);
+app.use('/api/kbli-mapping', kbliMappingRoutes);
+app.use('/api/kamus-kbli', kamusKbliRoutes);
 
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {

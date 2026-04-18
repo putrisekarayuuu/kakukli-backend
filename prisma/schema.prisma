@@ -32,3 +32,14 @@ model kbli_mapping {
   @@index([kbli_2020])
   @@index([kbli_2025])
 }
+
+model kamus_kbli {
+  id             Int     @id @default(autoincrement())
+  kode_kbli      String  @unique
+  kode_gabungan  String?
+  kategori       String?
+  judul          String?
+  deskripsi      String?
+
+   @@map("kamus_kbli")
+}

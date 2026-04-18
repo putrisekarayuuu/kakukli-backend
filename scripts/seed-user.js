@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const bcrypt = require('bcrypt');
 const { PrismaClient } = require('@prisma/client');
 const { PrismaPg } = require('@prisma/adapter-pg');
@@ -11,32 +13,30 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  const username = 'testuser';
   const password = 'password123';
-
-  // Check if user already exists
-  const existing = await prisma.user.findUnique({ where: { username } });
-  if (existing) {
-    console.log(`User "${username}" already exists.`);
-    await prisma.$disconnect();
-    await pool.end();
-    return;
-  }
-
   const passwordHash = await bcrypt.hash(password, 10);
 
-  const user = await prisma.user.create({
-    data: {
-      username,
-      password_hash: passwordHash,
-      is_active: true,
-    },
-  });
+  for (let i = 1; i <= 10; i++) {
+    const username = `dummymitra${i}`;
 
-  console.log(`\n✅ Dummy user created successfully!`);
-  console.log(`   Username: ${username}`);
-  console.log(`   Password: ${password}`);
-  console.log(`   User ID: ${user.id}\n`);
+    const existing = await prisma.user.findUnique({ where: { username } });
+    if (existing) {
+      console.log(`⚠️  User "${username}" already exists, skipping.`);
+      continue;
+    }
+
+    const user = await prisma.user.create({
+      data: {
+        username,
+        password_hash: passwordHash,
+        is_active: true,
+      },
+    });
+
+    console.log(`✅ Created: ${username} (ID: ${user.id})`);
+  }
+
+  console.log(`\n🔑 Password for all accounts: ${password}\n`);
 
   await prisma.$disconnect();
   await pool.end();
