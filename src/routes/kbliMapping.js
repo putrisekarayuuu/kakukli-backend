@@ -4,7 +4,7 @@ const prisma = require('../config/prisma');
 
 /**
  * @swagger
- * /api/kbli:
+ * /api/kbli-mapping:
  *   get:
  *     summary: Get KBLI mappings
  *     description: Retrieve KBLI mapping data with optional filters and pagination
@@ -100,7 +100,7 @@ router.get('/', async (req, res) => {
 });
 /**
  * @swagger
- * /api/kbli/stats:
+ * /api/kbli-mapping/stats:
  *   get:
  *     summary: Get KBLI statistics
  *     description: Get aggregate statistics for KBLI data
@@ -150,7 +150,7 @@ router.get('/stats', async (req, res) => {
 
 /**
  * @swagger
- * /api/kbli/{id}:
+ * /api/kbli-mapping/{id}:
  *   get:
  *     summary: Get KBLI mapping by ID
  *     description: Retrieve a specific KBLI mapping record
@@ -189,7 +189,7 @@ router.get('/:id', async (req, res) => {
 
 /**
  * @swagger
- * /api/kbli/search:
+ * /api/kbli-mapping/search:
  *   post:
  *     summary: Search KBLI mappings
  *     description: Search KBLI mappings with multiple criteria
