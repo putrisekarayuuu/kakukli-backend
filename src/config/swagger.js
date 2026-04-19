@@ -13,9 +13,13 @@ const options = {
     },
     servers: [
       {
-        url: process.env.API_URL || 'http://localhost:3000',
-        description: process.env.NODE_ENV === 'production' ? 'Production server' : 'Development server',
+        url: 'https://kakukli-backend-lac.vercel.app',
+        description: 'Production server'
       },
+      {
+        url: 'http://localhost:3000',
+        description: 'Local server'
+      }
     ],
     components: {
       securitySchemes: {
