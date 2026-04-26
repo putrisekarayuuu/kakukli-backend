@@ -42,6 +42,12 @@ const prisma = require('../config/prisma');
  *           type: integer
  *           default: 0
  *         description: Number of results to skip
+ *      - in: query
+ *         name: updated_after
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Filter records updated after this timestamp (ISO 8601)
  *     responses:
  *       200:
  *         description: List of KBLI mappings
@@ -69,7 +75,8 @@ router.get('/', async (req, res) => {
       kbli_2025, 
       korespondensi, 
       limit = 100, 
-      offset = 0 
+      offset = 0,
+      updated_after
     } = req.query;
 
     const where = {};
@@ -77,6 +84,7 @@ router.get('/', async (req, res) => {
     if (kbli_2020) where.kbli_2020 = kbli_2020;
     if (kbli_2025) where.kbli_2025 = kbli_2025;
     if (korespondensi) where.korespondensi = korespondensi;
+    if (updated_after) where.updated_at = { gt: new Date(updated_after) }
 
     const data = await prisma.kbli_mapping.findMany({
       where,
