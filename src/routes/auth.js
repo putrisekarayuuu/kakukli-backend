@@ -30,7 +30,7 @@ const JWT_EXPIRATION = process.env.JWT_EXPIRATION || '7d';
  *                 example: johndoe
  *               password:
  *                 type: string
- *                 example: password123
+ *                 example: abcdefgh123
  *     responses:
  *       200:
  *         description: Login successful
