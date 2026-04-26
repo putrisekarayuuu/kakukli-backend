@@ -42,12 +42,12 @@ const prisma = require('../config/prisma');
  *           type: integer
  *           default: 0
  *         description: Number of results to skip
- *      - in: query
- *        name: updated_after
- *        schema:
- *          type: string
- *          format: date-time
- *        description: Filter records updated after this timestamp (ISO 8601)
+ *       - in: query
+ *         name: updated_after
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Filter records updated after this timestamp (ISO 8601)
  *     responses:
  *       200:
  *         description: List of KBLI mappings
@@ -84,7 +84,7 @@ router.get('/', async (req, res) => {
     if (kbli_2020) where.kbli_2020 = kbli_2020;
     if (kbli_2025) where.kbli_2025 = kbli_2025;
     if (korespondensi) where.korespondensi = korespondensi;
-    if (updated_after) where.updated_at = { gt: new Date(updated_after) }
+    if (updated_after) where.updated_at = { gt: new Date(updated_after) };
 
     const data = await prisma.kbli_mapping.findMany({
       where,
@@ -106,6 +106,7 @@ router.get('/', async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch KBLI data' });
   }
 });
+
 /**
  * @swagger
  * /api/kbli-mapping/stats:
