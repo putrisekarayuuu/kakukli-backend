@@ -27,15 +27,25 @@ const prisma = require('../config/prisma');
  *         schema:
  *           type: integer
  *           default: 0
+ *       - in: query
+ *         name: updated_after
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Filter records updated after this timestamp (ISO 8601)
  *     responses:
  *       200:
  *         description: List of Kamus KBLI
  */
 router.get('/', async (req, res) => {
   try {
-    const { limit = 100, offset = 0 } = req.query;
+    const { limit = 100, offset = 0, updated_after } = req.query;
 
-    const data = await prisma.kamus_kbli.findMany({  // ✅ fixed
+    const where = {};
+    if (updated_after) where.updated_at = { gt: new Date(updated_after) };
+
+    const data = await prisma.kamus_kbli.findMany({
+      where,
       take: parseInt(limit),
       skip: parseInt(offset),
       orderBy: {
@@ -43,7 +53,7 @@ router.get('/', async (req, res) => {
       }
     });
 
-    const total = await prisma.kamus_kbli.count();  // ✅ fixed
+    const total = await prisma.kamus_kbli.count({ where });
 
     res.json({
       data,
@@ -108,7 +118,7 @@ router.get('/search', async (req, res) => {
         }
       : {};
 
-    const data = await prisma.kamus_kbli.findMany({  // ✅ fixed
+    const data = await prisma.kamus_kbli.findMany({
       where,
       take: parseInt(limit),
       orderBy: {
