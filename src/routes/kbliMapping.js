@@ -43,11 +43,11 @@ const prisma = require('../config/prisma');
  *           default: 0
  *         description: Number of results to skip
  *      - in: query
- *         name: updated_after
- *         schema:
- *           type: string
- *           format: date-time
- *         description: Filter records updated after this timestamp (ISO 8601)
+ *        name: updated_after
+ *        schema:
+ *          type: string
+ *          format: date-time
+ *        description: Filter records updated after this timestamp (ISO 8601)
  *     responses:
  *       200:
  *         description: List of KBLI mappings
