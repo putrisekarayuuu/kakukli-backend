@@ -159,6 +159,44 @@ router.get('/stats', async (req, res) => {
 
 /**
  * @swagger
+ * /api/kbli-mapping/count:
+ *   get:
+ *     summary: Count KBLI mappings
+ *     description: Count KBLI mapping records with optional updated_after filter
+ *     tags: [KBLI]
+ *     parameters:
+ *       - in: query
+ *         name: updated_after
+ *         schema:
+ *           type: string
+ *           format: date-time
+ *         description: Count records updated after this timestamp (ISO 8601)
+ *     responses:
+ *       200:
+ *         description: Count of KBLI mappings
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 count:
+ *                   type: integer
+ */
+router.get('/count', async (req, res) => {
+  try {
+    const { updated_after } = req.query;
+    const where = {};
+    if (updated_after) where.updated_at = { gt: new Date(updated_after) };
+    const count = await prisma.kbli_mapping.count({ where });
+    res.json({ count });
+  } catch (error) {
+    console.error('Error counting KBLI data:', error);
+    res.status(500).json({ error: 'Failed to count KBLI data' });
+  }
+});
+
+/**
+ * @swagger
  * /api/kbli-mapping/{id}:
  *   get:
  *     summary: Get KBLI mapping by ID
