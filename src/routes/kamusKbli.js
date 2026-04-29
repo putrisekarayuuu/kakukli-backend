@@ -42,15 +42,18 @@ router.get('/', async (req, res) => {
     const { limit = 100, offset = 0, updated_after } = req.query;
 
     const where = {};
-    if (updated_after) where.updated_at = { gt: new Date(updated_after) };
+    if (updated_after) {
+      where.updated_at = { gt: new Date(updated_after) };
+      // updateSync → tidak filter is_deleted biar yang dihapus ikut ke-fetch
+    } else {
+      where.is_deleted = false; // initial sync → skip yang dihapus
+    }
 
     const data = await prisma.kamus_kbli.findMany({
       where,
       take: parseInt(limit),
       skip: parseInt(offset),
-      orderBy: {
-        kode_kbli: 'asc'
-      }
+      orderBy: { kode_kbli: 'asc' }
     });
 
     const total = await prisma.kamus_kbli.count({ where });
@@ -73,7 +76,7 @@ router.get('/', async (req, res) => {
  * /api/kamus-kbli/search:
  *   get:
  *     summary: Search Kamus KBLI
- *     description: Search KBLI by kode, judul, or deskripsi
+ *     description: Search KBLI by kode, judul, or deskripsi. Only returns active records.
  *     tags: [Kamus KBLI]
  *     parameters:
  *       - in: query
@@ -96,34 +99,21 @@ router.get('/search', async (req, res) => {
 
     const isNumber = /^\d+$/.test(query);
 
-    const where = query
-      ? {
-          OR: [
-            ...(isNumber
-              ? [{ kode_kbli: { startsWith: query } }]
-              : []),
-            {
-              judul: {
-                contains: query,
-                mode: 'insensitive'
-              }
-            },
-            {
-              deskripsi: {
-                contains: query,
-                mode: 'insensitive'
-              }
-            }
-          ]
-        }
-      : {};
+    const where = {
+      is_deleted: false,
+      ...(query ? {
+        OR: [
+          ...(isNumber ? [{ kode_kbli: { startsWith: query } }] : []),
+          { judul: { contains: query, mode: 'insensitive' } },
+          { deskripsi: { contains: query, mode: 'insensitive' } }
+        ]
+      } : {})
+    };
 
     const data = await prisma.kamus_kbli.findMany({
       where,
       take: parseInt(limit),
-      orderBy: {
-        kode_kbli: 'asc'
-      }
+      orderBy: { kode_kbli: 'asc' }
     });
 
     res.json({
@@ -142,7 +132,7 @@ router.get('/search', async (req, res) => {
  * /api/kamus-kbli/count:
  *   get:
  *     summary: Count Kamus KBLI
- *     description: Count Kamus KBLI records with optional updated_after filter
+ *     description: Count active Kamus KBLI records with optional updated_after filter
  *     tags: [Kamus KBLI]
  *     parameters:
  *       - in: query
@@ -165,7 +155,7 @@ router.get('/search', async (req, res) => {
 router.get('/count', async (req, res) => {
   try {
     const { updated_after } = req.query;
-    const where = {};
+    const where = { is_deleted: false };
     if (updated_after) where.updated_at = { gt: new Date(updated_after) };
     const count = await prisma.kamus_kbli.count({ where });
     res.json({ count });

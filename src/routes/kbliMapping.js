@@ -84,7 +84,12 @@ router.get('/', async (req, res) => {
     if (kbli_2020) where.kbli_2020 = kbli_2020;
     if (kbli_2025) where.kbli_2025 = kbli_2025;
     if (korespondensi) where.korespondensi = korespondensi;
-    if (updated_after) where.updated_at = { gt: new Date(updated_after) };
+    if (updated_after) {
+      where.updated_at = { gt: new Date(updated_after) };
+      // updateSync → tidak filter is_deleted biar yang dihapus ikut ke-fetch
+    } else {
+      where.is_deleted = false; // initial sync → skip yang dihapus
+    }
 
     const data = await prisma.kbli_mapping.findMany({
       where,
@@ -162,7 +167,7 @@ router.get('/stats', async (req, res) => {
  * /api/kbli-mapping/count:
  *   get:
  *     summary: Count KBLI mappings
- *     description: Count KBLI mapping records with optional updated_after filter
+ *     description: Count active KBLI mapping records with optional updated_after filter
  *     tags: [KBLI]
  *     parameters:
  *       - in: query
@@ -185,7 +190,7 @@ router.get('/stats', async (req, res) => {
 router.get('/count', async (req, res) => {
   try {
     const { updated_after } = req.query;
-    const where = {};
+    const where = { is_deleted: false };
     if (updated_after) where.updated_at = { gt: new Date(updated_after) };
     const count = await prisma.kbli_mapping.count({ where });
     res.json({ count });
@@ -239,7 +244,7 @@ router.get('/:id', async (req, res) => {
  * /api/kbli-mapping/search:
  *   post:
  *     summary: Search KBLI mappings
- *     description: Search KBLI mappings with multiple criteria
+ *     description: Search KBLI mappings with multiple criteria. Only returns active records.
  *     tags: [KBLI]
  *     requestBody:
  *       required: true
@@ -277,7 +282,7 @@ router.post('/search', async (req, res) => {
       offset = 0 
     } = req.body;
 
-    const where = {};
+    const where = { is_deleted: false }; // ← tambah ini
     if (nama_usaha) where.nama_usaha = { contains: nama_usaha, mode: 'insensitive' };
     if (kbli_2020) where.kbli_2020 = kbli_2020;
     if (kbli_2025) where.kbli_2025 = kbli_2025;
