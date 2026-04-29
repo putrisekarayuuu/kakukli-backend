@@ -2,8 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
-const cron = require('node-cron');
-const prisma = require('./config/prisma');
 require('dotenv').config();
 
 const testRoutes = require('./routes/test');
@@ -59,30 +57,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-
-// cleanup soft-deleted records older than 30 days
-cron.schedule('*/5 * * * *', async () => {
-  console.log('Running cleanup job...');
-
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-  const kbli = await prisma.kbli_mapping.deleteMany({
-    where: {
-      is_deleted: true,
-      updated_at: { lt: thirtyDaysAgo }
-    }
-  });
-
-  const kamus = await prisma.kamus_kbli.deleteMany({
-    where: {
-      is_deleted: true,
-      updated_at: { lt: thirtyDaysAgo }
-    }
-  });
-
-  console.log(`Deleted: ${kbli.count} kbli_mapping, ${kamus.count} kamus_kbli`);
-});
 
 // For Vercy serverless deployment
 module.exports = app;
