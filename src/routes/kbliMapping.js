@@ -167,7 +167,7 @@ router.get('/stats', async (req, res) => {
  * /api/kbli-mapping/count:
  *   get:
  *     summary: Count KBLI mappings
- *     description: Count active KBLI mapping records with optional updated_after filter
+ *     description: Count KBLI mapping records. Without updated_after returns only active records. With updated_after returns all changed records including soft-deleted ones.
  *     tags: [KBLI]
  *     parameters:
  *       - in: query
@@ -175,7 +175,7 @@ router.get('/stats', async (req, res) => {
  *         schema:
  *           type: string
  *           format: date-time
- *         description: Count records updated after this timestamp (ISO 8601)
+ *         description: Count all records updated after this timestamp (ISO 8601), including soft-deleted
  *     responses:
  *       200:
  *         description: Count of KBLI mappings
@@ -190,8 +190,12 @@ router.get('/stats', async (req, res) => {
 router.get('/count', async (req, res) => {
   try {
     const { updated_after } = req.query;
-    const where = { is_deleted: false };
-    if (updated_after) where.updated_at = { gt: new Date(updated_after) };
+    const where = {};
+    if (updated_after) {
+      where.updated_at = { gt: new Date(updated_after) };
+    } else {
+      where.is_deleted = false;
+    }
     const count = await prisma.kbli_mapping.count({ where });
     res.json({ count });
   } catch (error) {

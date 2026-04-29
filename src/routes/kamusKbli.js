@@ -132,7 +132,7 @@ router.get('/search', async (req, res) => {
  * /api/kamus-kbli/count:
  *   get:
  *     summary: Count Kamus KBLI
- *     description: Count active Kamus KBLI records with optional updated_after filter
+ *     description: Count Kamus KBLI records. Without updated_after returns only active records. With updated_after returns all changed records including soft-deleted ones.
  *     tags: [Kamus KBLI]
  *     parameters:
  *       - in: query
@@ -140,7 +140,7 @@ router.get('/search', async (req, res) => {
  *         schema:
  *           type: string
  *           format: date-time
- *         description: Count records updated after this timestamp (ISO 8601)
+ *         description: Count all records updated after this timestamp (ISO 8601), including soft-deleted
  *     responses:
  *       200:
  *         description: Count of Kamus KBLI
@@ -155,8 +155,12 @@ router.get('/search', async (req, res) => {
 router.get('/count', async (req, res) => {
   try {
     const { updated_after } = req.query;
-    const where = { is_deleted: false };
-    if (updated_after) where.updated_at = { gt: new Date(updated_after) };
+    const where = {};
+    if (updated_after) {
+      where.updated_at = { gt: new Date(updated_after) };
+    } else {
+      where.is_deleted = false;
+    }
     const count = await prisma.kamus_kbli.count({ where });
     res.json({ count });
   } catch (error) {
