@@ -3,6 +3,7 @@ const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpec = require('./config/swagger');
 require('dotenv').config();
+const cronRoutes = require('./routes/cron');
 
 const testRoutes = require('./routes/test');
 const authRoutes = require('./routes/auth');
@@ -22,6 +23,7 @@ app.use('/api/test', testRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/kbli-mapping', kbliMappingRoutes);
 app.use('/api/kamus-kbli', kamusKbliRoutes);
+app.use('/api/cron', cronRoutes);
 
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
