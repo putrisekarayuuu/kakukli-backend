@@ -14,6 +14,8 @@ model User {
   last_login    DateTime?
   is_active     Boolean   @default(true)
   created_at    DateTime  @default(now())
+  token         String?
+  device_id     String?
 
   @@map("users")
 }
