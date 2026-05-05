@@ -34,62 +34,12 @@ const JWT_EXPIRATION = process.env.JWT_EXPIRATION || '7d';
  *     responses:
  *       200:
  *         description: Login successful
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Login successful
- *                 token:
- *                   type: string
- *                   example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
- *                 user:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                     username:
- *                       type: string
- *                     created_at:
- *                       type: string
- *                       format: date-time
- *                     last_login:
- *                       type: string
- *                       format: date-time
- *                     is_active:
- *                       type: boolean
  *       400:
  *         description: Missing username or password
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Username and password are required
  *       401:
  *         description: Invalid credentials
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Invalid credentials
  *       403:
  *         description: Account is deactivated
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Account is deactivated
  *       500:
  *         description: Internal server error
  */
@@ -97,11 +47,16 @@ const JWT_EXPIRATION = process.env.JWT_EXPIRATION || '7d';
 // Login route
 router.post('/login', async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username, password, device_id } = req.body; // ✅ TAMBAH device_id
 
     // Validate input
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password are required' });
+    }
+
+    // ✅ TAMBAH validasi device_id
+    if (!device_id) {
+      return res.status(400).json({ error: 'Device ID required' });
     }
 
     // Find user in database
@@ -116,6 +71,19 @@ router.post('/login', async (req, res) => {
     // Check if user is active
     if (!user.is_active) {
       return res.status(403).json({ error: 'Account is deactivated' });
+    }
+
+    // ✅ TAMBAH pengecekan one device one account
+    if (user.token && user.device_id !== device_id) {
+      try {
+        jwt.verify(user.token, JWT_SECRET);
+        // token masih valid → tolak login
+        return res.status(403).json({ 
+          error: 'Akun masih aktif di perangkat lain. Silakan logout terlebih dahulu.' 
+        });
+      } catch (e) {
+        // token expired → izinkan login, timpa token lama
+      }
     }
 
     // Verify password
@@ -135,10 +103,14 @@ router.post('/login', async (req, res) => {
       { expiresIn: JWT_EXPIRATION }
     );
 
-    // Update last login
+    // ✅ UBAH Update last login → tambah simpan token + device_id
     await prisma.user.update({
       where: { id: user.id },
-      data: { last_login: new Date() }
+      data: { 
+        last_login: new Date(),
+        token: token,       // ✅ TAMBAH
+        device_id: device_id // ✅ TAMBAH
+      }
     });
 
     // Return user data and token (exclude password hash)
@@ -182,46 +154,10 @@ router.post('/login', async (req, res) => {
  *     responses:
  *       201:
  *         description: User registered successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: User registered successfully
- *                 user:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                     username:
- *                       type: string
- *                     created_at:
- *                       type: string
- *                       format: date-time
- *                     is_active:
- *                       type: boolean
  *       400:
- *         description: Bad request (missing fields or password too short)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Password must be at least 6 characters
+ *         description: Bad request
  *       409:
  *         description: Username already exists
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Username already exists
  *       500:
  *         description: Internal server error
  */
@@ -231,17 +167,14 @@ router.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Validate input
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password are required' });
     }
 
-    // Validate password length
     if (password.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
     }
 
-    // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { username: username.toLowerCase() }
     });
@@ -250,11 +183,9 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ error: 'Username already exists' });
     }
 
-    // Hash password
     const saltRounds = 10;
     const passwordHash = await bcrypt.hash(password, saltRounds);
 
-    // Insert user into database
     const user = await prisma.user.create({
       data: { 
         username: username.toLowerCase(), 
@@ -262,7 +193,6 @@ router.post('/register', async (req, res) => {
       }
     });
 
-    // Return user data (exclude password hash)
     const { password_hash, ...userData } = user;
     
     res.status(201).json({
@@ -281,58 +211,21 @@ router.post('/register', async (req, res) => {
  * /api/auth/me:
  *   get:
  *     summary: Get current user profile
- *     description: Retrieve the authenticated user's profile information
  *     tags: [Authentication]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: User profile retrieved successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 user:
- *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                     username:
- *                       type: string
- *                     created_at:
- *                       type: string
- *                       format: date-time
- *                     last_login:
- *                       type: string
- *                       format: date-time
- *                     is_active:
- *                       type: boolean
  *       401:
- *         description: Unauthorized (invalid or missing token)
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: Unauthorized
+ *         description: Unauthorized
  *       404:
  *         description: User not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 error:
- *                   type: string
- *                   example: User not found
  *       500:
  *         description: Internal server error
  */
 
-// Protected route example (get current user profile)
+// Get current user profile
 router.get('/me', authMiddleware, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
@@ -353,6 +246,23 @@ router.get('/me', authMiddleware, async (req, res) => {
     res.json({ user });
   } catch (error) {
     console.error('Get profile error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ✅ TAMBAH Logout route
+router.post('/logout', authMiddleware, async (req, res) => {
+  try {
+    await prisma.user.update({
+      where: { id: req.user.userId },
+      data: { 
+        token: null,     // ✅ hapus token dari db
+        device_id: null  // ✅ hapus device_id dari db
+      }
+    });
+    res.json({ message: 'Logout successful' });
+  } catch (error) {
+    console.error('Logout error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
