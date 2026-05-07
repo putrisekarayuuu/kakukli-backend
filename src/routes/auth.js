@@ -267,4 +267,33 @@ router.post('/logout', authMiddleware, async (req, res) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/auth/verify:
+ *   get:
+ *     summary: Verify token validity
+ *     description: Check if the current token is still valid in the database
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Token is valid
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 valid:
+ *                   type: boolean
+ *                   example: true
+ *       401:
+ *         description: Token invalid or session ended
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/verify', authMiddleware, (req, res) => {
+  res.json({ valid: true });
+});
+
 module.exports = router;

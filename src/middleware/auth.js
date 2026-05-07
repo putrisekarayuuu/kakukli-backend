@@ -1,4 +1,6 @@
 const jwt = require('jsonwebtoken');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
@@ -16,6 +18,18 @@ const authMiddleware = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, JWT_SECRET);
     
+     // Cek token di DB
+    const user = await prisma.user.findFirst({
+      where: { 
+        token: token,
+        is_active: true  // sekalian cek akun aktif
+      }
+    });
+
+    if (!user || !user.token) {
+      return res.status(401).json({ error: 'Session ended. Please login again.' });
+    }
+
     // Attach user info to request
     req.user = decoded;
     
