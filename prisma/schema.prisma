@@ -31,6 +31,7 @@ model kbli_mapping {
   created_at        DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
   updated_at        DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
   is_deleted        Boolean?  @default(false)
+  nama_usaha_masked String?   @default(dbgenerated("replace(replace(replace(replace(replace(replace(replace(replace(replace(replace(nama_usaha, 'a'::text, '*'::text), 'i'::text, '*'::text), 'u'::text, '*'::text), 'e'::text, '*'::text), 'o'::text, '*'::text), 'A'::text, '*'::text), 'I'::text, '*'::text), 'U'::text, '*'::text), 'E'::text, '*'::text), 'O'::text, '*'::text)"))
 
   @@index([kbli_2020])
   @@index([kbli_2025])
