@@ -217,6 +217,28 @@ router.post('/register', async (req, res) => {
  *     responses:
  *       200:
  *         description: User profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: string
+ *                     username:
+ *                       type: string
+ *                     nama:
+ *                       type: string
+ *                     created_at:
+ *                       type: string
+ *                       format: date-time
+ *                     last_login:
+ *                       type: string
+ *                       format: date-time
+ *                     is_active:
+ *                       type: boolean
  *       401:
  *         description: Unauthorized
  *       404:
@@ -233,6 +255,7 @@ router.get('/me', authMiddleware, async (req, res) => {
       select: {
         id: true,
         username: true,
+        nama: true,
         created_at: true,
         last_login: true,
         is_active: true
