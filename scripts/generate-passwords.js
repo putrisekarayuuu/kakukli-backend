@@ -19,7 +19,7 @@ function generatePassword(length = 16) {
 
 async function main() {
   const workbook = XLSX.readFile(
-    "D:/BPS_2101/PENGOLAHAN/kakukli-data/laskarbps_user_list.xlsx"
+    "D:/BPS_2101/PENGOLAHAN/kakukli-data/laskarbps_user_organik_list.xlsx"
   );
 
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -55,7 +55,7 @@ async function main() {
 
   XLSX.writeFile(
     newWorkbook,
-    "D:/BPS_2101/PENGOLAHAN/kakukli-data/laskarbps_user_list_with_password.xlsx"
+    "D:/BPS_2101/PENGOLAHAN/kakukli-data/laskarbps_user_organik_list_with_password.xlsx"
   );
 
   console.log(
